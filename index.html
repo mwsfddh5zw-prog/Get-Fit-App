@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fitness">
+<meta name="theme-color" content="#0e0e0e">
+<title>Fitness App</title>
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Fitness">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  --bg: #0e0e0e;
+  --bg2: #161616;
+  --bg3: #1f1f1f;
+  --border: #2a2a2a;
+  --border2: #333;
+  --text: #f0ede8;
+  --text2: #8a8580;
+  --text3: #555;
+  --green: #8fc43a;
+  --green-dim: #1e2d0f;
+  --green-mid: #3a5c12;
+  --teal: #1ead7a;
+  --teal-dim: #0c2419;
+  --blue: #4a9eff;
+  --blue-dim: #0d1f35;
+  --red: #e05c3a;
+  --red-dim: #2d1008;
+  --accent: #c8b89a;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --safe-bottom: env(safe-area-inset-bottom, 16px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; overflow: hidden; }
+.app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+/* HEADER */
+.header { padding: 52px 20px 14px; background: var(--bg); border-bottom: 0.5px solid var(--border); flex-shrink: 0; }
+.header-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.header-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
+.header-sub { font-size: 12px; color: var(--text2); margin-top: 2px; font-family: 'DM Mono', monospace; }
+.streak-badge { display: flex; align-items: center; gap: 5px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 20px; padding: 5px 10px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--accent); }
+
+/* TABS (bottom nav) */
+.bottom-nav { display: flex; background: var(--bg2); border-top: 0.5px solid var(--border); flex-shrink: 0; padding-bottom: var(--safe-bottom); }
+.tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px 6px; border: none; background: transparent; color: var(--text3); cursor: pointer; transition: color 0.15s; font-family: 'Syne', sans-serif; }
+.tab-btn.active { color: var(--green); }
+.tab-btn i { font-size: 20px; }
+.tab-btn span { font-size: 10px; font-weight: 500; }
+
+/* SCROLL AREA */
+.content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.page { display: none; padding: 16px 16px 24px; }
+.page.active { display: block; }
+
+/* DAY PILL ROW */
+.day-scroll { display: flex; gap: 6px; overflow-x: auto; padding: 0 0 2px; margin-bottom: 14px; scrollbar-width: none; }
+.day-scroll::-webkit-scrollbar { display: none; }
+.day-pill { flex-shrink: 0; padding: 7px 14px; border: 0.5px solid var(--border2); border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; background: var(--bg2); color: var(--text2); transition: all 0.15s; font-family: 'DM Mono', monospace; }
+.day-pill.active { background: var(--green-dim); color: var(--green); border-color: var(--green-mid); }
+.day-pill.school { border-color: #1a3050; }
+.day-pill.school.active { background: var(--blue-dim); color: var(--blue); border-color: #1a3050; }
+
+/* PROGRESS */
+.prog-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.prog-label { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; }
+.prog-pct { font-size: 11px; color: var(--green); font-family: 'DM Mono', monospace; }
+.prog-track { height: 3px; background: var(--bg3); border-radius: 2px; margin-bottom: 16px; }
+.prog-fill { height: 3px; border-radius: 2px; background: var(--green); transition: width 0.4s; }
+
+/* SECTION LABEL */
+.sec-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin: 18px 0 8px; font-family: 'DM Mono', monospace; }
+.sec-label:first-child { margin-top: 0; }
+
+/* CARDS */
+.card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; }
+.card-header { padding: 12px 14px; display: flex; align-items: center; gap: 8px; }
+.badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 20px; font-family: 'DM Mono', monospace; letter-spacing: 0.03em; }
+.badge-kb { background: #0d2318; color: #3dcca0; border: 0.5px solid #164d33; }
+.badge-w { background: var(--red-dim); color: #f08060; border: 0.5px solid #4a1a08; }
+.badge-emom { background: var(--blue-dim); color: var(--blue); border: 0.5px solid #1a3050; }
+.badge-rest { background: var(--bg3); color: var(--text2); border: 0.5px solid var(--border2); }
+.card-detail { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; flex: 1; text-align: right; }
+.card-divider { height: 0.5px; background: var(--border); }
+
+/* EXERCISE ROWS */
+.ex-row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 0.5px solid var(--border); transition: background 0.1s; }
+.ex-row:last-child { border-bottom: none; }
+.ex-row.done-row { background: transparent; }
+.chk { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border2); background: transparent; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; -webkit-appearance: none; appearance: none; }
+.chk.on { background: var(--green); border-color: var(--green); }
+.chk i { font-size: 13px; color: var(--bg); display: none; }
+.chk.on i { display: block; }
+.ex-name { flex: 1; font-size: 13px; color: var(--text); line-height: 1.3; }
+.ex-name.done { text-decoration: line-through; color: var(--text3); }
+.ex-meta { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; flex-shrink: 0; }
+
+/* REST PAGE */
+.rest-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 20px 16px; text-align: center; }
+.rest-icon { font-size: 36px; margin-bottom: 10px; }
+.rest-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.rest-sub { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* DIET */
+.day-type-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.type-badge { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 20px; font-family: 'DM Mono', monospace; }
+.type-home { background: var(--green-dim); color: var(--green); border: 0.5px solid var(--green-mid); }
+.type-school { background: var(--blue-dim); color: var(--blue); border: 0.5px solid #1a3050; }
+.type-tip { font-size: 11px; color: var(--text2); flex: 1; }
+.meal-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; }
+.meal-top { display: flex; align-items: center; padding: 12px 14px; gap: 10px; }
+.meal-emoji { font-size: 22px; width: 36px; height: 36px; background: var(--bg3); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.meal-info { flex: 1; }
+.meal-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.meal-time { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; margin-top: 1px; }
+.prot-badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 20px; background: var(--green-dim); color: var(--green); border: 0.5px solid var(--green-mid); font-family: 'DM Mono', monospace; flex-shrink: 0; }
+.meal-items { border-top: 0.5px solid var(--border); }
+.meal-item-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 0.5px solid var(--border); }
+.meal-item-row:last-child { border-bottom: none; }
+.mchk { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border2); background: transparent; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; -webkit-appearance: none; }
+.mchk.on { background: var(--teal); border-color: var(--teal); }
+.mchk.on i { display: block !important; }
+.mchk i { font-size: 11px; color: var(--bg); display: none; }
+.meal-food { flex: 1; font-size: 13px; color: var(--text); }
+.meal-food.done { text-decoration: line-through; color: var(--text3); }
+.macro-row { display: flex; gap: 8px; margin-top: 10px; }
+.macro-box { flex: 1; background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 8px; text-align: center; }
+.macro-val { font-size: 16px; font-weight: 700; color: var(--text); font-family: 'DM Mono', monospace; }
+.macro-lbl { font-size: 10px; color: var(--text2); margin-top: 2px; }
+
+/* BOODSCHAPPEN */
+.shop-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.reset-btn { font-size: 11px; color: var(--text2); background: var(--bg2); border: 0.5px solid var(--border2); border-radius: 20px; padding: 6px 12px; cursor: pointer; font-family: 'DM Mono', monospace; display: flex; align-items: center; gap: 5px; }
+.cat-label { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg3); border-radius: var(--radius-sm); margin-bottom: 2px; }
+.cat-emoji { font-size: 16px; }
+.cat-name { font-size: 12px; font-weight: 600; color: var(--text); flex: 1; }
+.cat-count { font-size: 10px; color: var(--text2); font-family: 'DM Mono', monospace; }
+.shop-items { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+.shop-row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 0.5px solid var(--border); cursor: pointer; transition: background 0.1s; }
+.shop-row:last-child { border-bottom: none; }
+.shop-row.got { background: var(--bg3); }
+.shop-row.got .shop-name { text-decoration: line-through; color: var(--text3); }
+.shop-name { flex: 1; font-size: 13px; color: var(--text); }
+.shop-qty { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; flex-shrink: 0; }
+
+/* WEEK */
+.week-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 16px; }
+.week-cell { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 4px; text-align: center; cursor: pointer; transition: all 0.15s; }
+.week-cell.hit { background: var(--green-dim); border-color: var(--green-mid); }
+.week-cell-lbl { font-size: 10px; color: var(--text2); font-family: 'DM Mono', monospace; }
+.week-cell.hit .week-cell-lbl { color: var(--green); }
+.week-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border2); margin: 5px auto 0; }
+.week-cell.hit .week-dot { background: var(--green); }
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat-box { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 10px; text-align: center; }
+.stat-val { font-size: 26px; font-weight: 700; color: var(--text); font-family: 'DM Mono', monospace; }
+.stat-lbl { font-size: 10px; color: var(--text2); margin-top: 3px; }
+
+/* INSTALL BANNER */
+.install-banner { display: none; margin: 0 0 12px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 12px 14px; }
+.install-banner.show { display: block; }
+.install-banner p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.install-banner strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="header-title">Fitness</div>
+        <div class="header-sub" id="today-lbl">—</div>
+      </div>
+      <div class="streak-badge"><i class="ti ti-flame"></i><span id="streak-lbl">0 streak</span></div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- TRAINING -->
+    <div class="page active" id="page-training">
+      <div class="day-scroll" id="day-tabs-t"></div>
+      <div class="prog-row"><span class="prog-label" id="t-prog-lbl">0/0</span><span class="prog-pct" id="t-prog-pct">0%</span></div>
+      <div class="prog-track"><div class="prog-fill" id="t-prog-bar" style="width:0%"></div></div>
+      <div id="training-content"></div>
+    </div>
+
+    <!-- DIEET -->
+    <div class="page" id="page-dieet">
+      <div class="day-scroll" id="day-tabs-d"></div>
+      <div id="dieet-content"></div>
+    </div>
+
+    <!-- BOODSCHAPPEN -->
+    <div class="page" id="page-boodschappen">
+      <div class="shop-header-row">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);">Weekboodschappen</div>
+          <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;">elke maandag ophalen</div>
+        </div>
+        <button class="reset-btn" onclick="resetBoodschappen()"><i class="ti ti-refresh" style="font-size:13px;"></i> Reset</button>
+      </div>
+      <div class="prog-row"><span class="prog-label" id="b-prog-lbl">0/0</span><span class="prog-pct" id="b-prog-pct" style="color:var(--teal);">0%</span></div>
+      <div class="prog-track"><div class="prog-fill" id="b-prog-bar" style="width:0%;background:var(--teal);"></div></div>
+      <div id="shop-content"></div>
+    </div>
+
+    <!-- WEEK -->
+    <div class="page" id="page-week">
+      <div class="sec-label">deze week</div>
+      <div class="week-row" id="week-grid"></div>
+      <div class="sec-label">totalen</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val" id="s-days">0</div><div class="stat-lbl">trainingen</div></div>
+        <div class="stat-box"><div class="stat-val" id="s-ex">0</div><div class="stat-lbl">oefeningen</div></div>
+        <div class="stat-box"><div class="stat-val" id="s-meals">0</div><div class="stat-lbl">maaltijden</div></div>
+      </div>
+      <div class="sec-label" style="margin-top:20px;">installeer op homescreen</div>
+      <div class="card" style="padding:14px;">
+        <p style="font-size:12px;color:var(--text2);line-height:1.6;"><strong style="color:var(--accent);">iPhone/iPad:</strong> Tik op het Deel-icoon (<i class="ti ti-share" style="font-size:13px;vertical-align:-2px;"></i>) in Safari → "Zet op beginscherm"<br><br><strong style="color:var(--accent);">Android:</strong> Tik op de drie puntjes in Chrome → "Toevoegen aan startscherm"</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="tab-btn active" onclick="switchPage('training',this)"><i class="ti ti-barbell"></i><span>Training</span></button>
+    <button class="tab-btn" onclick="switchPage('dieet',this)"><i class="ti ti-salad"></i><span>Dieet</span></button>
+    <button class="tab-btn" onclick="switchPage('boodschappen',this)"><i class="ti ti-shopping-cart"></i><span>Boodschappen</span></button>
+    <button class="tab-btn" onclick="switchPage('week',this)"><i class="ti ti-chart-bar"></i><span>Week</span></button>
+  </div>
+</div>
+
+<script>
+const DAYS = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
+const SCHOOL = ['Di','Wo','Do','Vr'];
+
+const SCHEDULE = {
+  Ma:{ label:'Dag 1 · Push & Pull', type:'training', blocks:[
+    { id:'kb', badge:'kb', name:'Kettlebell circuit', detail:'40/20 · 4 ronden', ex:[
+      ['Squat to shoulder press','40s/20s'],['Halos','40s/20s'],
+      ['Rotational lunges','40s/20s'],['Uppercuts','40s/20s'],
+    ]},
+    { id:'w', badge:'w', name:'Weights', detail:'2× to failure', ex:[
+      ['Pull-ups','2× fail'],['Curl-ups','2× fail'],['Front-delt barbell raise','2× fail'],
+      ['Shrugs','2× fail'],['Bent-over row','2× fail'],['Oblique leans','2× fail'],
+      ['EZ bar curls','2× fail'],['Forearm curls','2× fail'],['Hammer curls','2× fail'],
+    ]},
+    { id:'emom', badge:'emom', name:'EMOM · Calisthenics', detail:'10 min', ex:[
+      ['Pushups','50% max/min'],['Pullups','50% max/min'],
+    ]},
+  ]},
+  Di:{ label:'Dag 2 · Chest & Triceps', type:'training', blocks:[
+    { id:'kb', badge:'kb', name:'Kettlebell circuit', detail:'40/20 · 4 ronden', ex:[
+      ['Upper chest press','40s/20s'],['Shoulder press → tricep extension','40s/20s'],
+      ['Bicep to chest lift','40s/20s'],['Cross body lifts','40s/20s'],
+    ]},
+    { id:'w', badge:'w', name:'Weights', detail:'2× to failure', ex:[
+      ['Dips','2× fail'],['Overhead tricep extension','2× fail'],['Chest flies','2× fail'],
+      ['Skull crushers','2× fail'],['Kettlebell pullover','2× fail'],
+      ['Hanging leg raises','2× fail'],['Oblique leans','2× fail'],
+    ]},
+    { id:'emom', badge:'emom', name:'EMOM · Calisthenics', detail:'10 min', ex:[
+      ['Dips','50% max/min'],['Pushups','50% max/min'],
+    ]},
+  ]},
+  Wo:{ label:'Rust', type:'rest' },
+  Do:{ label:'Dag 3 · Legs', type:'training', blocks:[
+    { id:'kb', badge:'kb', name:'Kettlebell circuit', detail:'40/20 · 4 ronden', ex:[
+      ['Halo lunges','40s/20s'],['Curtsy lunges','40s/20s'],
+      ['Squat press out','40s/20s'],['Squat to shoulder press','40s/20s'],
+    ]},
+    { id:'w', badge:'w', name:'Weights', detail:'2× to failure', ex:[
+      ['Oblique leans','2× fail'],['Hanging leg raises','2× fail'],['Dumbbell RDL','2× fail'],
+      ['Dumbbell split squat','2× fail'],['Back squat','2× fail'],['Calf raises','2× fail'],
+    ]},
+    { id:'emom', badge:'emom', name:'EMOM · Calisthenics', detail:'10 min', ex:[
+      ['Curl-ups','50% max/min'],['L-sit pullups','50% max/min'],
+    ]},
+  ]},
+  Vr:{ label:'Dag 4 · Shoulders & Arms', type:'training', blocks:[
+    { id:'kb', badge:'kb', name:'Kettlebell circuit', detail:'40/20 · 4 ronden', ex:[
+      ['Uppercut with high lift','40s/20s'],['Shoulder press → tricep extension','40s/20s'],
+      ['Shoulder lifts','40s/20s'],
+    ]},
+    { id:'w', badge:'w', name:'Weights', detail:'2× to failure', ex:[
+      ['Dips','2× fail'],['Overhead tricep extension','2× fail'],['Skull crushers','2× fail'],
+      ['Hammer curls','2× fail'],['Forearm curls','2× fail'],
+      ['Front-delt barbell raise','2× fail'],['Shoulder press','2× fail'],
+    ]},
+    { id:'emom', badge:'emom', name:'EMOM · Calisthenics', detail:'10 min', ex:[
+      ['Dips','50% max/min'],['Pushups','50% max/min'],
+    ]},
+  ]},
+  Za:{ label:'Rust', type:'rest' },
+  Zo:{ label:'Rust', type:'rest' },
+};
+
+const DIET = {
+  thuis:{ type:'home', label:'Thuisdag', tip:'Meer tijd — kook echt.', meals:[
+    { icon:'☀️', name:'Ontbijt', time:'07:00', prot:54, items:[
+      ['4 eieren (roerei/gebakken)',28],['2 sneetjes volkorenbrood',6],['Melk of protein shake',20]
+    ]},
+    { icon:'🕛', name:'Lunch', time:'12:00', prot:52, items:[
+      ['200g kipfilet of tonijn',44],['150g rijst of 2 wraps',5],['Groente naar keuze',3]
+    ]},
+    { icon:'🌙', name:'Avondeten', time:'18:00', prot:49, items:[
+      ['200g vlees of vis',42],['Zoete aardappel of pasta (150g)',5],['Groente + olijfolie',2]
+    ]},
+  ]},
+  school:{ type:'school', label:'Schooldag', tip:'Prep de avond ervoor.', meals:[
+    { icon:'☀️', name:'Ontbijt', time:'07:00', prot:27, items:[
+      ['Havermout (80g) met melk',12],['2 hardgekookte eieren',14],['Banaan',1]
+    ]},
+    { icon:'🎒', name:'Lunch (mee)', time:'12:00', prot:54, items:[
+      ['2–3 broodjes kip of tonijn',35],['Cottage cheese (150g)',18],['Fruit + water',1]
+    ]},
+    { icon:'🌙', name:'Avondeten', time:'18:00', prot:49, items:[
+      ['200g vlees of vis',42],['Zoete aardappel of pasta (150g)',5],['Groente + olijfolie',2]
+    ]},
+  ]},
+};
+
+const BOODSCHAPPEN = [
+  { icon:'🥩', name:'Vlees & vis', items:[['Kipfilet','±1,2 kg'],['Tonijn (blik in water)','4 blikjes'],['Zalm of magere gehakt','400g'],['Sardines (blik)','2 blikjes']]},
+  { icon:'🥚', name:'Zuivel & eieren', items:[['Eieren (free range)','18 stuks'],['Griekse yoghurt (nonfat)','500g'],['Cottage cheese (low-fat)','450g'],['Melk of protein shake','1L / 1 pak']]},
+  { icon:'🌾', name:'Koolhydraten', items:[['Havermout','500g'],['Zilvervliesrijst','1 kg'],['Volkorenbrood','1 pak'],['Volkorenwraps','8 stuks'],['Zoete aardappelen','1 kg'],['Pasta (volkoren)','500g']]},
+  { icon:'🥦', name:'Groenten', items:[['Broccoli','2 stuks'],['Paprika (mix)','4 stuks'],['Spinazie (zak)','1 zak'],['Groene bonen / snap peas','300g'],['Bleekselderij','1 stronk']]},
+  { icon:'🍌', name:'Fruit', items:[['Bananen','6 stuks'],['Appels','4 stuks'],['Bessen (vers/diepvries)','300g']]},
+  { icon:'🫙', name:'Conserven & droog', items:[['Zwarte bonen (blik)','2 blikjes'],['Kikkererwten (blik)','1 blikje'],['Kimchi of zuurkool','1 pot'],['Olijfolie','op voorraad']]},
+  { icon:'🧂', name:'Kruiden & smaak', items:[['Paprikapoeder','op voorraad'],['Kaneel','op voorraad'],['Knoflookpoeder','op voorraad'],['Zwarte peper','op voorraad'],['Rauwe honing','1 potje']]},
+  { icon:'💧', name:'Drinken', items:[['Gefilterd water (glazen fles)','voor de week'],['Zwarte koffie','1 pak']]},
+];
+
+const BTOTAL = BOODSCHAPPEN.reduce((a,c)=>a+c.items.length,0);
+
+let S = {};
+try { S = JSON.parse(localStorage.getItem('fitV4')||'{}'); } catch(e){}
+if(!S.w) S.w={};
+if(!S.m) S.m={};
+if(!S.b) S.b={};
+if(!S.wk) S.wk=[0,0,0,0,0,0,0];
+function save(){try{localStorage.setItem('fitV4',JSON.stringify(S));}catch(e){}}
+
+// Auto-reset every Monday
+(function checkWeekReset(){
+  const today = new Date();
+  // Get ISO week number
+  const getWeek = (d) => {
+    const date = new Date(d);
+    date.setHours(0,0,0,0);
+    date.setDate(date.getDate() + 3 - (date.getDay()+6)%7);
+    const week1 = new Date(date.getFullYear(),0,4);
+    return 1 + Math.round(((date-week1)/86400000 - 3 + (week1.getDay()+6)%7)/7);
+  };
+  const getYear = (d) => {
+    const date = new Date(d);
+    date.setDate(date.getDate() + 3 - (date.getDay()+6)%7);
+    return date.getFullYear();
+  };
+  const thisWeek = getYear(today) + '-W' + getWeek(today);
+  if(S.lastWeek && S.lastWeek !== thisWeek) {
+    // New week — reset workouts, meals, weekhits (keep boodschappen)
+    S.w = {};
+    S.m = {};
+    S.wk = [0,0,0,0,0,0,0];
+  }
+  S.lastWeek = thisWeek;
+  save();
+})();
+
+const now = new Date();
+let curT = DAYS[now.getDay()===0?6:now.getDay()-1];
+let curD = curT;
+
+// DATE LABEL
+const dayNL=['Zondag','Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag'];
+const mNL=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+document.getElementById('today-lbl').textContent = `${dayNL[now.getDay()]} ${now.getDate()} ${mNL[now.getMonth()]}`;
+updateStreak();
+
+function switchPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='week') renderWeek();
+  if(id==='boodschappen') renderBoodschappen();
+}
+
+// ── TRAINING ──
+function buildDayTabsT() {
+  const c = document.getElementById('day-tabs-t');
+  c.innerHTML = DAYS.map(d=>{
+    const isSchool = SCHOOL.includes(d);
+    return `<button class="day-pill${d===curT?' active':''}${isSchool?' school':''}" onclick="selectT('${d}')">${d}</button>`;
+  }).join('');
+}
+
+function selectT(d){ curT=d; buildDayTabsT(); renderTraining(); }
+
+function renderTraining(){
+  const sched = SCHEDULE[curT];
+  const wc = document.getElementById('training-content');
+  const key = curT;
+  if(!S.w[key]) S.w[key]={};
+
+  if(sched.type==='rest'){
+    document.getElementById('t-prog-lbl').textContent='Rustdag';
+    document.getElementById('t-prog-pct').textContent='';
+    document.getElementById('t-prog-bar').style.cssText='width:100%;background:var(--teal);';
+    wc.innerHTML=`<div class="rest-card"><div class="rest-icon">😴</div><div class="rest-title">Rustdag</div><div class="rest-sub">Geen training vandaag.<br>Wandel, stretch, drink water.</div></div>`;
+    return;
+  }
+  document.getElementById('t-prog-bar').style.background='var(--green)';
+
+  let allK=[], doneN=0;
+  sched.blocks.forEach(bl=>bl.ex.forEach((_,i)=>allK.push(`${bl.id}-${i}`)));
+  allK.forEach(k=>{ if(S.w[key][k]) doneN++; });
+  const pct = allK.length ? Math.round(doneN/allK.length*100) : 0;
+  document.getElementById('t-prog-bar').style.width=pct+'%';
+  document.getElementById('t-prog-lbl').textContent=`${doneN} van ${allK.length} gedaan`;
+  document.getElementById('t-prog-pct').textContent=pct+'%';
+
+  wc.innerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:12px;font-family:'DM Mono',monospace;">${sched.label} · max 1 uur</div>` +
+    sched.blocks.map(bl=>`
+      <div class="card">
+        <div class="card-header">
+          <span class="badge badge-${bl.badge}">${bl.name}</span>
+          <span class="card-detail">${bl.detail}</span>
+        </div>
+        <div class="card-divider"></div>
+        ${bl.ex.map((ex,i)=>{
+          const ekey=`${bl.id}-${i}`, on=!!S.w[key][ekey];
+          return `<div class="ex-row${on?' done-row':''}">
+            <button class="chk${on?' on':''}" onclick="toggleEx('${key}','${ekey}')"><i class="ti ti-check"></i></button>
+            <span class="ex-name${on?' done':''}">${ex[0]}</span>
+            <span class="ex-meta">${ex[1]}</span>
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+}
+
+function toggleEx(day,ekey){ S.w[day][ekey]=!S.w[day][ekey]; save(); renderTraining(); }
+
+// ── DIEET ──
+function buildDayTabsD() {
+  const c = document.getElementById('day-tabs-d');
+  c.innerHTML = DAYS.map(d=>{
+    const isSchool = SCHOOL.includes(d);
+    return `<button class="day-pill${d===curD?' active':''}${isSchool?' school':''}" onclick="selectD('${d}')">${d}</button>`;
+  }).join('');
+}
+
+function selectD(d){ curD=d; buildDayTabsD(); renderDieet(); }
+
+function renderDieet(){
+  const isSchool = SCHOOL.includes(curD);
+  const plan = isSchool ? DIET.school : DIET.thuis;
+  const dc = document.getElementById('dieet-content');
+  if(!S.m[curD]) S.m[curD]={};
+  let checked=0, total=0;
+  plan.meals.forEach(m=>m.items.forEach(it=>total+=it[1]));
+
+  dc.innerHTML = `<div class="day-type-row">
+    <span class="type-badge type-${plan.type}">${plan.label}</span>
+    <span class="type-tip">${plan.tip}</span>
+  </div>` +
+  plan.meals.map((meal,mi)=>{
+    let mChecked=0;
+    meal.items.forEach((it,ii)=>{ if(S.m[curD][`${mi}-${ii}`]){checked+=it[1];mChecked+=it[1];} });
+    return `<div class="meal-card">
+      <div class="meal-top">
+        <div class="meal-emoji">${meal.icon}</div>
+        <div class="meal-info"><div class="meal-name">${meal.name}</div><div class="meal-time">${meal.time}</div></div>
+        <div class="prot-badge">~${meal.prot}g eiwit</div>
+      </div>
+      <div class="meal-items">
+        ${meal.items.map((item,ii)=>{
+          const k=`${mi}-${ii}`, on=!!S.m[curD][k];
+          return `<div class="meal-item-row">
+            <button class="mchk${on?' on':''}" onclick="toggleMeal('${curD}','${k}')"><i class="ti ti-check"></i></button>
+            <span class="meal-food${on?' done':''}">${item[0]}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('') +
+  `<div class="macro-row">
+    <div class="macro-box"><div class="macro-val">${checked}g</div><div class="macro-lbl">eiwit gegeten</div></div>
+    <div class="macro-box"><div class="macro-val">${total}g</div><div class="macro-lbl">doel</div></div>
+    <div class="macro-box"><div class="macro-val">${total?Math.round(checked/total*100):0}%</div><div class="macro-lbl">van doel</div></div>
+  </div>`;
+}
+
+function toggleMeal(day,k){if(!S.m[day])S.m[day]={};S.m[day][k]=!S.m[day][k];save();renderDieet();}
+
+// ── BOODSCHAPPEN ──
+function renderBoodschappen(){
+  const done = Object.values(S.b).filter(Boolean).length;
+  const pct = Math.round(done/BTOTAL*100);
+  document.getElementById('b-prog-lbl').textContent=`${done} van ${BTOTAL}`;
+  document.getElementById('b-prog-pct').textContent=pct+'%';
+  document.getElementById('b-prog-bar').style.width=pct+'%';
+  document.getElementById('shop-content').innerHTML = BOODSCHAPPEN.map((cat,ci)=>{
+    const catDone=cat.items.filter((_,ii)=>S.b[`${ci}-${ii}`]).length;
+    return `<div class="cat-label"><span class="cat-emoji">${cat.icon}</span><span class="cat-name">${cat.name}</span><span class="cat-count">${catDone}/${cat.items.length}</span></div>
+    <div class="shop-items">
+      ${cat.items.map((item,ii)=>{
+        const k=`${ci}-${ii}`, on=!!S.b[k];
+        return `<div class="shop-row${on?' got':''}" onclick="toggleB('${k}')">
+          <div class="chk${on?' on':''}"><i class="ti ti-check"></i></div>
+          <span class="shop-name">${item[0]}</span>
+          <span class="shop-qty">${item[1]}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+function toggleB(k){S.b[k]=!S.b[k];save();renderBoodschappen();}
+function resetBoodschappen(){S.b={};save();renderBoodschappen();}
+
+// ── WEEK ──
+function renderWeek(){
+  document.getElementById('week-grid').innerHTML = DAYS.map((d,i)=>{
+    const hit=S.wk[i];
+    return `<div class="week-cell${hit?' hit':''}" onclick="toggleWk(${i})"><div class="week-cell-lbl">${d}</div><div class="week-dot"></div></div>`;
+  }).join('');
+  let totalEx=0;
+  Object.values(S.w).forEach(w=>{ totalEx+=Object.values(w).filter(Boolean).length; });
+  const trainDays=Object.keys(S.w).filter(k=>Object.values(S.w[k]).some(Boolean)).length;
+  let mealsDone=0;
+  Object.values(S.m).forEach(d=>{ mealsDone+=Object.values(d).filter(Boolean).length; });
+  document.getElementById('s-days').textContent=trainDays;
+  document.getElementById('s-ex').textContent=totalEx;
+  document.getElementById('s-meals').textContent=mealsDone;
+}
+function toggleWk(i){ S.wk[i]=S.wk[i]?0:1; save(); renderWeek(); updateStreak(); }
+function updateStreak(){ document.getElementById('streak-lbl').textContent=(S.wk?S.wk.filter(Boolean).length:0)+' streak'; }
+
+// INIT
+buildDayTabsT();
+buildDayTabsD();
+renderTraining();
+renderDieet();
+renderBoodschappen();
+</script>
+</body>
+</html>
